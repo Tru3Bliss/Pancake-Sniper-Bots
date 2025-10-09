@@ -42,6 +42,8 @@ const main = async () => {
             accountInfo: SPL_ACCOUNT_LAYOUT.decode(account.data),
           });
         }
+      else
+        console.log("No token accounts found")
 
       for (let j = 0; j < accounts.length; j++) {
         const baseAta = await getAssociatedTokenAddress(accounts[j].accountInfo.mint, mainKp.publicKey)
@@ -55,9 +57,11 @@ const main = async () => {
             break
           }
           if (tokenBalance.uiAmount == 0) {
+            console.log("Token balance is 0")
             break
           }
           try {
+            console.log("Selling token:", accounts[j].accountInfo.mint.toBase58())
             const sellTx = await getSellTxWithJupiter(kp, accounts[j].accountInfo.mint, tokenBalance.amount)
             if (sellTx == null) {
               // console.log(`Error getting sell transaction`)

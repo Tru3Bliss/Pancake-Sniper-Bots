@@ -5,6 +5,11 @@ export const PRIVATE_KEY = retrieveEnvVariable('PRIVATE_KEY')
 export const RPC_ENDPOINT = retrieveEnvVariable('RPC_ENDPOINT')
 export const RPC_WEBSOCKET_ENDPOINT = retrieveEnvVariable('RPC_WEBSOCKET_ENDPOINT')
 
+export const LIL_JIT_ENDPOINT = retrieveEnvVariable('LIL_JIT_ENDPOINT')
+export const LIL_JIT_WEBSOCKET_ENDPOINT = retrieveEnvVariable('LIL_JIT_WEBSOCKET_ENDPOINT')
+
+export const LIL_JIT_MODE = retrieveEnvVariable('LIL_JIT_MODE') == "true"
+
 export const TOKEN_NAME = retrieveEnvVariable('TOKEN_NAME')
 export const TOKEN_SYMBOL = retrieveEnvVariable('TOKEN_SYMBOL')
 export const DESCRIPTION = retrieveEnvVariable('DESCRIPTION')
@@ -20,6 +25,8 @@ export const SWAP_AMOUNT = Number(retrieveEnvVariable('SWAP_AMOUNT'))
 export const DISTRIBUTION_WALLETNUM = Number(retrieveEnvVariable('DISTRIBUTION_WALLETNUM'))
 
 export const JITO_FEE = Number(retrieveEnvVariable('JITO_FEE'))
+export const MINIMUM_JITO_TIP = Number(retrieveEnvVariable('MINIMUM_JITO_TIP'))
+export const SIMULATE_ONLY = retrieveEnvVariable('SIMULATE_ONLY') == "true"
 
 export const global_mint = new PublicKey("p89evAyzjd9fphjJx7G3RFA48sbZdpGEppRcfRNpump")
 export const PUMP_PROGRAM = new PublicKey("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P");

@@ -1,10 +1,11 @@
 import { VersionedTransaction, Keypair, Connection, ComputeBudgetProgram, TransactionInstruction, TransactionMessage, PublicKey } from "@solana/web3.js"
 import base58 from "bs58"
 
-import { DISTRIBUTION_WALLETNUM, PRIVATE_KEY, RPC_ENDPOINT, RPC_WEBSOCKET_ENDPOINT, SWAP_AMOUNT, VANITY_MODE } from "./constants"
+import { DISTRIBUTION_WALLETNUM, LIL_JIT_MODE, PRIVATE_KEY, RPC_ENDPOINT, RPC_WEBSOCKET_ENDPOINT, SWAP_AMOUNT, VANITY_MODE } from "./constants"
 import { generateVanityAddress, saveDataToFile, sleep } from "./utils"
 import { createTokenTx, distributeSol, createLUT, makeBuyIx, addAddressesToTableMultiExtend } from "./src/main";
 import { executeJitoTx } from "./executor/jito";
+import { sendBundle } from "./executor/liljito";
 
 
 
@@ -165,8 +166,18 @@ const main = async () => {
     transactions.push(tx)
   }
 
-  transactions.map(async (tx, i) => console.log(i, " | ", tx.serialize().length, "bytes | \n", (await connection.simulateTransaction(tx, { sigVerify: true }))))
-  await executeJitoTx(transactions, mainKp, commitment)
+  // transactions.map(async (tx, i) => console.log(i, " | ", tx.serialize().length, "bytes | \n", (await connection.simulateTransaction(tx, { sigVerify: true }))))
+
+  console.log("Sending bundle...")
+  if (LIL_JIT_MODE) {
+    const bundleId = await sendBundle(transactions)
+    if (!bundleId) {
+      console.log("Failed to send bundle")
+      return
+    }
+  } else {
+    await executeJitoTx(transactions, mainKp, commitment)
+  }
   await sleep(10000)
 }
 

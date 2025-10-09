@@ -1,15 +1,15 @@
 # Pump.fun Bundler
 
-A sophisticated Solana token bundler designed to create and launch tokens on pump.fun with advanced features including multi-wallet bundling, vanity address generation, and Jito MEV protection.
+A sophisticated Solana token bundler designed to create and launch tokens on pump.fun with advanced features including multi-wallet bundling, vanity address generation, and dual bundle execution support (Jito/Lil Jito) for MEV protection.
 
 ## 🚀 Features
 
 - **Multi-Wallet Bundling**: Distributes SOL across multiple wallets and executes coordinated token purchases
 - **Vanity Address Generation**: Generate custom token addresses with specific suffixes (e.g., ending with "pump")
-- **Jito MEV Protection**: Uses Jito bundles for MEV protection and transaction ordering
+- **Dual Bundle Execution**: Support for both Jito and Lil Jito bundle services for MEV protection
 - **Address Lookup Tables (LUT)**: Optimizes transaction size and reduces fees
 - **Flexible Configuration**: Support for both multi-wallet and single-wallet bundling modes
-- **Automatic Retry Logic**: Built-in retry mechanisms for RPC and Jito failures
+- **Automatic Retry Logic**: Built-in retry mechanisms for RPC and bundle execution failures
 - **Token Metadata**: Full support for token metadata including images, descriptions, and social links
 
 ## 📋 Prerequisites
@@ -26,12 +26,14 @@ A sophisticated Solana token bundler designed to create and launch tokens on pum
 ## 🛠️ Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd pump.fun-bundler
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 # or
@@ -45,6 +47,11 @@ yarn install
 PRIVATE_KEY=your_main_wallet_private_key_in_base58
 RPC_ENDPOINT=https://your-solana-rpc-endpoint
 RPC_WEBSOCKET_ENDPOINT=wss://your-solana-websocket-endpoint
+
+# Bundle Execution Configuration
+LIL_JIT_MODE=true
+LIL_JIT_ENDPOINT=https://your-lil-jit-endpoint
+LIL_JIT_WEBSOCKET_ENDPOINT=wss://your-lil-jit-websocket-endpoint
 
 # Token Configuration
 TOKEN_NAME=Your Token Name
@@ -73,11 +80,13 @@ BUYER_AMOUNT=0.5
 ### Multi-Wallet Bundling (Recommended)
 
 Run the main bundler script:
+
 ```bash
 npm start
 ```
 
 This will:
+
 1. Generate or use a vanity address (if enabled)
 2. Create the token with metadata
 3. Distribute SOL to multiple wallets
@@ -87,6 +96,7 @@ This will:
 ### Single Wallet Mode
 
 For simpler operations with a single buyer wallet:
+
 ```bash
 npm run single
 ```
@@ -97,9 +107,36 @@ npm run single
 - **Gather Funds**: `npm run gather` - Collects funds from bundler wallets
 - **Check Status**: `npm run status` - Checks the status of transactions
 
+## 🔀 Choosing Between Jito and Lil Jito
+
+The bundler supports two different bundle execution services:
+
+### Jito Mode (Default)
+
+- **Configuration**: Set `LIL_JIT_MODE=false` in `.env`
+- **Features**:
+  - Multi-regional endpoint submission (NY, Tokyo)
+  - Automatic failover between endpoints
+  - Well-established service with high reliability
+  - Requires `JITO_FEE` for tipping
+- **Best for**: Production deployments requiring maximum redundancy
+
+### Lil Jito Mode
+
+- **Configuration**: Set `LIL_JIT_MODE=true` in `.env`
+- **Features**:
+  - Single endpoint configuration
+  - Simplified setup process
+  - Alternative bundle execution service
+  - May offer different performance characteristics
+- **Best for**: Testing alternative execution paths or when Jito is congested
+
+**Recommendation**: Start with Jito mode (default) for most use cases. Switch to Lil Jito if you experience persistent issues with standard Jito or want to test alternative execution.
+
 ## ⚙️ Configuration Options
 
 ### Token Settings
+
 - `TOKEN_NAME`: The official name of your token
 - `TOKEN_SYMBOL`: Token symbol (usually 3-5 characters)
 - `TOKEN_SHOW_NAME`: Display name shown in wallets
@@ -108,12 +145,20 @@ npm run single
 - Social links: Twitter, Telegram, Website
 
 ### Bundling Settings
+
 - `SWAP_AMOUNT`: SOL amount per wallet for purchasing (in SOL)
 - `DISTRIBUTION_WALLETNUM`: Number of wallets to create and use
 - `JITO_FEE`: Jito tip amount (in SOL)
 - `VANITY_MODE`: Enable/disable vanity address generation
 
+### Bundle Execution Settings
+
+- `LIL_JIT_MODE`: Toggle between Lil Jito (true) and standard Jito (false) bundle execution
+- `LIL_JIT_ENDPOINT`: Lil Jito RPC endpoint for bundle submission
+- `LIL_JIT_WEBSOCKET_ENDPOINT`: Lil Jito WebSocket endpoint for real-time updates
+
 ### RPC Configuration
+
 - Use high-performance RPC endpoints for better success rates
 - Recommended providers: Helius, QuickNode, Alchemy
 - Ensure WebSocket support for real-time updates
@@ -121,54 +166,77 @@ npm run single
 ## 🔧 Technical Details
 
 ### Architecture
+
 - **Token Creation**: Uses pump.fun SDK for token deployment
 - **Wallet Distribution**: Creates multiple keypairs and distributes SOL
 - **LUT Management**: Optimizes transaction size using Address Lookup Tables
-- **Jito Integration**: Sends bundles to multiple Jito endpoints for redundancy
+- **Bundle Execution**: Dual support for Jito and Lil Jito bundle services
+  - **Jito**: Sends bundles to multiple regional Jito endpoints for redundancy
+  - **Lil Jito**: Alternative bundle service with simplified endpoint configuration
 - **Retry Logic**: Automatic retries for failed operations
 
 ### Transaction Flow
+
 1. Token creation transaction
 2. SOL distribution to bundler wallets
 3. LUT creation and population
 4. Coordinated buy transactions in bundles
-5. Jito bundle submission
+5. Bundle submission (via Jito or Lil Jito based on configuration)
 
 ## 🚨 Troubleshooting
 
 ### Common Issues
 
 #### RPC Errors
+
 ```
 Error: RPC endpoint failed
 ```
+
 **Solutions:**
+
 - Use a premium RPC provider with higher rate limits
 - Implement RPC endpoint rotation
 - Check network connectivity
 - Reduce concurrent requests
 
-#### Jito Failures
+#### Bundle Submission Failures
+
 ```
-Error: Jito bundle submission failed
+Error: Jito/Lil Jito bundle submission failed
 ```
+
 **Solutions:**
-- Increase Jito tip amount
-- Try different Jito endpoints
-- Reduce bundle size
-- Check transaction simulation results
+
+- **For Jito Mode** (LIL_JIT_MODE=false):
+  - Increase Jito tip amount (`JITO_FEE`)
+  - Multiple regional endpoints are tried automatically
+  - Check transaction simulation results
+- **For Lil Jito Mode** (LIL_JIT_MODE=true):
+  - Verify `LIL_JIT_ENDPOINT` is correct and accessible
+  - Check endpoint availability and rate limits
+  - Switch to standard Jito mode if issues persist
+- **General Solutions:**
+  - Reduce bundle size
+  - Verify transaction signatures are valid
+  - Check network congestion
 
 #### Insufficient Balance
+
 ```
 Error: Main wallet balance is not enough
 ```
+
 **Solutions:**
+
 - Calculate required SOL: `(SWAP_AMOUNT + 0.01) * DISTRIBUTION_WALLETNUM + 0.04`
 - Add more SOL to your main wallet
 - Reduce `DISTRIBUTION_WALLETNUM` or `SWAP_AMOUNT`
 
 #### Transaction Simulation Failures
+
 **Solutions:**
+
 - Reduce compute unit limits
 - Optimize transaction size
 - Check token metadata validity
@@ -177,19 +245,26 @@ Error: Main wallet balance is not enough
 ### Performance Optimization
 
 1. **RPC Optimization**:
+
    - Use dedicated RPC endpoints
    - Implement connection pooling
    - Monitor rate limits
 
 2. **Transaction Optimization**:
+
    - Use Address Lookup Tables effectively
    - Optimize compute unit allocation
    - Batch operations when possible
 
-3. **Jito Optimization**:
-   - Use appropriate tip amounts
-   - Submit to multiple endpoints
-   - Monitor bundle success rates
+3. **Bundle Execution Optimization**:
+   - **Jito Mode**:
+     - Use appropriate tip amounts
+     - Automatic multi-endpoint submission for redundancy
+     - Monitor bundle success rates
+   - **Lil Jito Mode**:
+     - Simpler endpoint configuration
+     - May offer faster execution in some cases
+     - Test both modes to determine best performance
 
 ## 📁 Project Structure
 
@@ -197,6 +272,7 @@ Error: Main wallet balance is not enough
 ├── constants/          # Configuration constants
 ├── executor/          # Transaction execution logic
 │   ├── jito.ts       # Jito bundle execution
+│   ├── liljito.ts    # Lil Jito bundle execution
 │   └── legacy.ts     # Legacy transaction execution
 ├── keys/             # Generated wallet keys and data
 ├── src/              # Core functionality
@@ -221,6 +297,7 @@ Error: Main wallet balance is not enough
 ## 📊 Monitoring and Analytics
 
 The bundler provides detailed logging for:
+
 - Transaction signatures and confirmations
 - Wallet creation and distribution
 - LUT creation and population
@@ -238,6 +315,7 @@ The bundler provides detailed logging for:
 ## ⚠️ Disclaimer
 
 This software is for educational and research purposes. Users are responsible for:
+
 - Compliance with local regulations
 - Proper tax reporting
 - Understanding the risks of cryptocurrency trading
@@ -250,6 +328,7 @@ ISC License - see LICENSE file for details
 ## 🆘 Support
 
 For issues and questions:
+
 1. Check the troubleshooting section
 2. Review the logs for specific error messages
 3. Ensure all environment variables are properly set
