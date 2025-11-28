@@ -1,10 +1,15 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "moduleResolution": "node",
-    "module": "es2022",
-    "target": "es2022",
-    "outDir": "dist/esm/",
-    "rootDir": "",
-  }
+	"compilerOptions": {
+		// "module": "esnext",
+		// "moduleResolution": "bundler",
+		"module": "commonjs",
+		"target": "es2020",
+		"lib": ["es6"],
+		"allowJs": true,
+		"strict": true,
+		"noImplicitAny": true,
+		"esModuleInterop": true,
+		"resolveJsonModule": false,
+		"baseUrl": "."
+	}
 }
